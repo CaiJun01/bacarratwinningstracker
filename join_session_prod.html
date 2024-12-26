@@ -83,7 +83,18 @@
             axios.post(`https://bacarratwinningstracker.onrender.com/get_players`, { sessionID: sessionId })
                 .then(function (response) {
                     const players = response.data.players; // Assume server responds with { players: [{ name, join_time }] }
-                    const tableBody = document.getElementById("playersTable").getElementsByTagName("tbody")[0];
+                    // Always re-query DOM after innerHTML updates
+                    const table = document.getElementById("playersTable");
+                    if (!table) {
+                        console.error("playersTable element not found!");
+                        return;
+                    }
+
+                    const tableBody = table.getElementsByTagName("tbody")[0];
+                    if (!tableBody) {
+                        console.error("tbody element not found!");
+                        return;
+                    }
 
                     // Clear existing table rows
                     tableBody.innerHTML = "";
