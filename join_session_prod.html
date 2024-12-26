@@ -132,6 +132,7 @@
                     const players = response.data.players; // Assume server responds with { players: [{ name, join_time }] }
                     // Always re-query DOM after innerHTML updates
                     const table = document.getElementById("playersTable");
+                    console.log(table)
                     if (!table) {
                         console.error("playersTable element not found!");
                         return;
