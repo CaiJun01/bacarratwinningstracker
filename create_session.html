@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Session</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+</head>
+</head>
+<body>
+    <div id = "prompt">
+        <h1>Enter Your Name</h1>
+        <input type="text" id="nameInput" placeholder="Type your name here">
+        <button onclick = "createSession()" >Create Session</button>
+    </div>
+
+    <script>
+        const socket = io("http://127.0.0.1:5100", {multiplex: false});
+        let sessionID
+        let intervalId;
+        function createSession() {
+            const name = document.getElementById('nameInput').value.trim(); // Get the input value and trim whitespace
+            if (!name) { // Check if the input is empty
+                alert('Please enter your name!');
+                return; // Stop the function execution
+            }
+            const data = {'leader': name}
+            axios.post('http://127.0.0.1:5100/create_session',data)
+                .then(function (response) {
+                    // Handle success
+                    console.log(response.data);
+                    alert(`Message: ${response.data.message}, Session ID: ${response.data.session_id}`);
+                    sessionID = response.data.session_id;
+                    socket.emit('join', { session_id: sessionID, player_name: data['leader'] });
+                    document.getElementById('prompt').innerHTML =`
+                    <h1>Session Created Successfully</h1>
+                    <div id="sessionDetails"></div>
+                    <div id="round"></div>
+                    <p id = "status"><b>Status:</b> Waiting for other players to join...</p>
+                    <h2 id = "tableheader">Players in Session</h2>
+                    <table border="1" id="playersTable">
+                    <thead>
+                        <tr>
+                        <th>Player Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamic rows will be added here -->
+                    </tbody>
+                    </table>
+                    <br>
+                    <button id="startRoundButton">Start Session</button>
+                    `
+                    const sessionDetails = document.getElementById("sessionDetails");
+                    sessionDetails.innerHTML = `
+                            <p><strong>Leader:</strong> ${data['leader']}</p>
+                            <p><strong>Session ID:</strong> ${response.data.session_id}</p>
+                        `;
+                    const fetchPlayerData = {sessionID: response.data.session_id }//this is just session id
+                    let fetchIntervalId = setInterval(() => fetchPlayers(fetchPlayerData), 2000); // fetch player data every 2 seconds to update display
+
+                    document.getElementById("startRoundButton").addEventListener("click", () => {
+
+                        // onclick, stop fetching player data periodically
+                        clearInterval(fetchIntervalId); 
+
+                        //get the round number and display it
+                        axios.get(`http://127.0.0.1:5100/check_session`).then(response => {
+                            const round_count = response.data[sessionID]['round_count']
+                            let round = round_count+1
+                            document.getElementById('round').innerHTML = `<b>Round:</b> ${round}` 
+                        })
+
+                        //change the status to waiting for bets
+                        document.getElementById('status').innerHTML = '<b>Status:</b> Waiting for players to input bets...'
+
+                        //run the start_round event. This resets the bets in the session and emits a start_game event to
+                            //prompt players to place their bets
+                        socket.emit("start_round", {
+                            session_id: sessionID,
+                            player_name: data['leader'],
+                        });
+                        
+                        //hide the 'start round' button since it has been clicked
+                        document.getElementById('startRoundButton').style.display='none'
+
+                        //display who has placed their bets
+                        socket.on('start_game', () => {
+                            document.getElementById('tableheader').innerHTML = `Bets Placed`
+                            const table = document.getElementById('playersTable');
+                            table.innerHTML = `
+                                <thead>
+                                    <tr>
+                                        <th>Player</th>
+                                        <th>Current Balance</th>
+                                        <th>Bet Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            `;
+
+                            // periodically update and display who has placed their bets every 2 seconds
+                            intervalId = setInterval(periodicCalls, 2000);
+                            periodicCalls();
+                        })
+                    }); //end of startRoundButton onclick logic
+                }) //end of .then
+                .catch(function (error) {
+                    // Handle error
+                    console.error(error);
+                    document.getElementById('nameInput').textContent = 'An error occurred!';
+                });
+            
+        }//end of createSession function
+
+        function fetchPlayers(data) {
+            axios.post(`http://127.0.0.1:5100/get_players`, data)
+                .then(function (response) {
+                    const players = response.data.players; // Assume server responds with { players: [{ name, join_time }] }
+                    const tableBody = document.getElementById("playersTable").getElementsByTagName("tbody")[0];
+
+                    // Clear existing table rows
+                    tableBody.innerHTML = "";
+
+                    // Populate table with players
+                    players.forEach((player) => {
+                    const row = document.createElement("tr");
+                    const nameCell = document.createElement("td");
+                    nameCell.textContent = player;
+                    row.appendChild(nameCell);
+                    tableBody.appendChild(row);
+                    });
+                })
+                .catch(function (error) {
+                    console.error("Error fetching players:", error);
+                });
+        }//end of fetchPlayers function
+
+        function periodicCalls() {
+            displayBets(); // Call endpoint 1 to display data
+            fetchCondition()       // Call endpoint 2 to check the condition
+                .then(condition => {
+                    if (condition) { //condition usually returns false
+                        clearInterval(intervalId); // Stop periodic calls
+                        displayBets(); // Fetch endpoint 1 one last time for display
+                        document.getElementById('status').innerHTML = "<b>Status:</b> All players have placed their bets.";
+                    }
+                    else{
+                        document.getElementById('status').innerHTML = "<b>Status:</b> Waiting for players to input bets...";
+                    }
+                });
+        }// end of periodicCalls function
+
+        function displayBets(){
+            return axios.get(`http://127.0.0.1:5100/check_session`) // Replace with your display endpoint
+                .then(response => {
+                    const players = response.data[sessionID]['players']
+                    const bets = response.data[sessionID]['bets']
+                    let betsandbalance = {};
+                    for (const player in players) {
+                        betsandbalance[player] = {
+                            balance: players[player],
+                            bet_amount: bets[player] !== undefined ? bets[player] : 'NA'
+                        };
+                    }
+                    displayBetsTable(betsandbalance)})
+                .catch(error => {
+                    console.error("Error fetching display data:", error);
+                });
+        }//end of displayBets function
+
+        function fetchCondition(){
+            return axios.get(`http://127.0.0.1:5100/check_bets/${sessionID}`) // Replace with your condition endpoint
+                .then(response => response.data['all_bets_in']) // Assuming the response contains { condition: true/false }
+                .catch(error => {
+                    console.error("Error fetching condition:", error);
+                    return false; // Default to false if the request fails
+                });
+        }//end of fetchCondition function. This function returns true if all non-players has placed their bets
+
+        function displayBetsTable(bets) {
+            const table = document.querySelector('#playersTable');
+            let tableBody = table.querySelector('tbody');
+
+            //clear existing table rows
+            tableBody.innerHTML = '';
+
+            // Populate table rows with bets data
+            for (const [player, dets] of Object.entries(bets)) {
+                const row = document.createElement('tr');
+
+                const playerCell = document.createElement('td');
+                playerCell.textContent = player;
+
+                const balanceCell = document.createElement('td')
+                balanceCell.textContent = dets['balance']
+
+                const betCell = document.createElement('td');
+                betCell.textContent = dets['bet_amount'];
+
+                row.appendChild(playerCell);
+                row.appendChild(balanceCell)
+                row.appendChild(betCell);
+
+                tableBody.appendChild(row); // Append the row to the existing table body
+            }
+        }//end of displayBetsTable
+
+        socket.on("all_bets_received", (data) => { //upon receiving all bets
+
+            const container = document.getElementById("prompt"); // Ensure this element exists in your HTML
+
+            // Create enterResults button if the button does not exists
+            if (!document.getElementById("enterResults")) {
+                const enterResults = document.createElement("button");
+                enterResults.innerText = 'Enter Results';
+                enterResults.id = 'enterResults';
+
+                // Create a <br> element for spacing
+                const br = document.createElement('br');
+
+                // Append the button and <br> to the container
+                container.appendChild(br);
+                container.appendChild(enterResults);
+            }
+
+            //logic for clicking enter results button
+            enterResults.addEventListener('click', () => {
+                console.log("enterResults clicked");
+                document.getElementById('enterResults').style.display=`none`
+                axios.get(`http://127.0.0.1:5100/check_session`)
+                    .then((response) => {
+                        const l = response.data[sessionID]['leader']
+                        const p = response.data[sessionID]['players']
+                        let player_names = Object.keys(p).filter(player => player !== l);
+                        console.log("Player Names without Leader:", player_names);
+
+                        if (!document.getElementById("leaderInputForm")){
+                            const form = document.createElement("form");
+                            form.id = "leaderInputForm";
+
+                            const instructions = document.createElement("p");
+                            instructions.innerHTML = "<b>Indicate whether you won against each player and input the multiplier:</b>";
+                            form.appendChild(instructions);
+
+                            player_names.forEach((player)=>{
+                                const playerDiv = document.createElement("div");
+                                const playerLabel = document.createElement("label");
+                                playerLabel.innerHTML = `Against <b>${player}</b>: `;
+                                playerDiv.appendChild(playerLabel);
+
+                                // Input for win/loss (Yes/No)
+                                const outcomes = [
+                                    { value: "yes", label: "Win" },
+                                    { value: "draw", label: "Draw" },
+                                    { value: "no", label: "Lose" }
+                                ];
+                            
+                            const radioGroupDiv = document.createElement("div");
+                            radioGroupDiv.style.display = "flex"; // Use flexbox to arrange items side by side
+                            radioGroupDiv.style.gap = "10px"; // Add spacing between radio buttons
+
+                            outcomes.forEach(outcome => {
+                                const radioDiv = document.createElement("div"); // Div to group the radio button and label
+                                radioDiv.style.display = "inline-block"; // Keep each radio button-label pair inline
+
+                                const radioInput = document.createElement("input");
+                                radioInput.type = "radio";
+                                radioInput.name = `win_${player}`; // Group all radio buttons for this player
+                                radioInput.value = outcome.value;
+
+                                const radioLabel = document.createElement("label");
+                                radioLabel.textContent = outcome.label;
+                                radioLabel.htmlFor = `win_${player}_${outcome.value}`; // Associate label with radio button
+                                radioInput.id = `win_${player}_${outcome.value}`;
+
+                                // Append radio button and label to the container
+                                radioDiv.appendChild(radioInput);
+                                radioDiv.appendChild(radioLabel);
+
+                                radioGroupDiv.appendChild(radioDiv); // Append the radio pair to the group container
+                            });
+                            playerDiv.appendChild(radioGroupDiv); // Append the radio group to the player's div
+
+                            // Input for multiplier
+                            const multiplierInput = document.createElement("input");
+                            multiplierInput.type = "number";
+                            multiplierInput.step = "0.01";
+                            multiplierInput.name = `multiplier_${player}`;
+                            multiplierInput.placeholder = "Multiplier";
+                            playerDiv.appendChild(multiplierInput);
+                            const br = document.createElement("br")
+
+                            form.appendChild(playerDiv);
+                            form.appendChild(br)
+                        });
+
+                        // Add a Submit button
+                        const submitButton = document.createElement("button");
+                        
+                        submitButton.type = "submit";
+                        submitButton.innerText = "Submit Results";
+                        
+                        form.appendChild(submitButton);
+
+                        container.appendChild(form);  
+                        
+                        form.addEventListener("submit", (event) => {
+                        event.preventDefault(); // Prevent default form submission behavior
+                        
+                        const formData = new FormData(form);
+                        const results = [];
+
+                        // Loop through each player to extract win and multiplier values
+                        player_names.forEach((player) => {
+                            // Retrieve the value of the selected radio button for this player
+                            const winValue = formData.get(`win_${player}`);
+                            const win = winValue === "yes"; // Convert "yes" to a boolean (true/false)
+
+                            // Retrieve and parse the multiplier value
+                            const multiplier = parseFloat(formData.get(`multiplier_${player}`));
+
+                            // Push the result object for this player
+                            results.push({ player, win, outcome: winValue, multiplier });
+                        });
+
+                        const toremove = document.getElementById("leaderInputForm");
+                        if (toremove) {
+                            toremove.remove(); // Removes the element from the DOM
+                            console.log('element removed')
+                        }
+
+                        // Emit the results to the server
+                        socket.emit("process_results", { session_id: sessionID, results: results });
+                        periodicCalls() // update display table
+                        document.getElementById('enterResults').style.display=``
+                        });
+                    }                 
+                })
+                .catch((error) => {
+                console.error("Error fetching non-leaders:", error);
+                });
+            })// end of enterResults onclick logic
+        });//end of all bets received socket
+
+        socket.on("next_round", (data) => {
+            console.log(`Starting next round: ${data.round_count}`);
+            
+            // Automatically trigger the startRoundButton
+            const startRoundButton = document.getElementById("startRoundButton");
+            if (startRoundButton) {
+                console.log("startRoundButton clicked!")
+                startRoundButton.click(); // Programmatically click the button
+            } else {
+                console.error("startRoundButton not found!");
+            }
+        });
+
+      socket.on("error", (data) => {
+        alert(data.error);
+      });
+
+      
+        </script>
+</body>
+</html>
