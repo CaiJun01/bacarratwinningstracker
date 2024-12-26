@@ -35,6 +35,7 @@
 
             // Emit the 'join' event to the backend
             socket.emit('join', { session_id: sessionId, player_name: playerName });
+            socket.off('player_joined');
             socket.on('player_joined', (data) => {
                 // Get the prompt container
                 const prompt = document.getElementById('prompt');
@@ -101,10 +102,12 @@
                 // Append the displayTable div to the prompt
                 prompt.appendChild(displayTable);
 
+                console.log("playersTable created:", document.getElementById("playersTable"));
+
                 fetchLeaderAndUpdateUI();
             });
             // Fetch players initially and every 5 seconds
-            fetchPlayers();
+            setTimeout(fetchPlayers, 0);
             fetchIntervalId = setInterval(fetchPlayers, 2000); // Poll every 2 seconds
         });//end of joinSessionButton logic
 
