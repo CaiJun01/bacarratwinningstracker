@@ -3,9 +3,10 @@ import random
 import uuid
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit, join_room, leave_room, rooms
+import eventlet
 
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, async_mode='eventlet')
 CORS(app)
 
 # In-memory data storage
@@ -249,4 +250,4 @@ def room_clients(session_id):
 #     return {"players": player_names}
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5100)
+    socketio.run(app, host='0.0.0.0', port=5000)
