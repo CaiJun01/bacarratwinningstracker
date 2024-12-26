@@ -36,27 +36,71 @@
             // Emit the 'join' event to the backend
             socket.emit('join', { session_id: sessionId, player_name: playerName });
             socket.on('player_joined', (data) => {
-                document.getElementById('prompt').innerHTML = `
-                <h1>Session Joined Successfully</h1>
-                <div id="sessionDetails"></div>
-                <p id = "status"><b>Status:</b> Waiting for leader to start the session...</p>
-                <p id = "round"></p>
-                <div id = "betamount"></div>
-                <div id = "displaytable">
-                <h2>Players in Session</h2>
-                <table border="1" id="playersTable">
-                <thead>
-                    <tr>
-                    <th>Player Name</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Dynamic rows will be added here -->
-                </tbody>
-                </table>
-                </div>
-                
-                `;
+                // Get the prompt container
+                const prompt = document.getElementById('prompt');
+
+                // Clear the current content of prompt
+                prompt.innerHTML = "";
+
+                // Create and append the "Session Joined Successfully" heading
+                const heading = document.createElement('h1');
+                heading.textContent = "Session Joined Successfully";
+                prompt.appendChild(heading);
+
+                // Create and append the sessionDetails div
+                const sessionDetails = document.createElement('div');
+                sessionDetails.id = "sessionDetails";
+                prompt.appendChild(sessionDetails);
+
+                // Create and append the status paragraph
+                const status = document.createElement('p');
+                status.id = "status";
+                status.innerHTML = "<b>Status:</b> Waiting for leader to start the session...";
+                prompt.appendChild(status);
+
+                // Create and append the round paragraph
+                const round = document.createElement('p');
+                round.id = "round";
+                prompt.appendChild(round);
+
+                // Create and append the betamount div
+                const betAmount = document.createElement('div');
+                betAmount.id = "betamount";
+                prompt.appendChild(betAmount);
+
+                // Create and append the displaytable div
+                const displayTable = document.createElement('div');
+                displayTable.id = "displaytable";
+
+                // Add the heading for the table
+                const tableHeading = document.createElement('h2');
+                tableHeading.textContent = "Players in Session";
+                displayTable.appendChild(tableHeading);
+
+                // Create and append the table
+                const table = document.createElement('table');
+                table.border = "1";
+                table.id = "playersTable";
+
+                // Create and append the table header
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                const headerCell = document.createElement('th');
+                headerCell.textContent = "Player Name";
+                headerRow.appendChild(headerCell);
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                // Create and append the table body
+                const tbody = document.createElement('tbody');
+                table.appendChild(tbody);
+
+                // Append the table to the displayTable div
+                displayTable.appendChild(table);
+
+                // Append the displayTable div to the prompt
+                prompt.appendChild(displayTable);
+
                 fetchLeaderAndUpdateUI();
             });
             // Fetch players initially and every 5 seconds
