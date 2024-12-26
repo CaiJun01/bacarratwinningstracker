@@ -105,10 +105,11 @@
                 console.log("playersTable created:", document.getElementById("playersTable"));
 
                 fetchLeaderAndUpdateUI();
+                setTimeout(fetchPlayers, 0);
+                fetchIntervalId = setInterval(fetchPlayers, 2000); // Poll every 2 seconds
             });
             // Fetch players initially and every 5 seconds
-            setTimeout(fetchPlayers, 0);
-            fetchIntervalId = setInterval(fetchPlayers, 2000); // Poll every 2 seconds
+            
         });//end of joinSessionButton logic
 
         function fetchLeaderAndUpdateUI() {
