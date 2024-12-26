@@ -6,8 +6,8 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, rooms
 import eventlet
 
 app = Flask(__name__)
-socketio = SocketIO(app, async_mode='eventlet')
-CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="https://676d80e025a5fb0008309898--courageous-cocada-d21642.netlify.app", async_mode='eventlet')
+CORS(app, resources={r"/*": {"origins": "https://676d80e025a5fb0008309898--courageous-cocada-d21642.netlify.app"}})
 
 # In-memory data storage
 sessions = {}
