@@ -65,7 +65,8 @@ def create_session():
         "leader": leader,
         "players": {},  # Leader starts with a balance of 0
         "bets": {},
-        "bets_submitted": set()
+        "bets_submitted": set(),
+        "results_submitted":{}
     }
     return jsonify({"message": "Session created", "session_id": session_id})
 
@@ -157,7 +158,37 @@ def on_start_round(data):
 @socketio.on('triggerEnterWLandMultiples')
 def trigger_enter_WL_and_Multiples(data):
     session_id = data['session_id']
-    emit('enterWLandMultiples',{'message':'Input whether you won, draw or loss against the banker and the multiple'}, room=session_id)
+    emit('enterWLandMultiples',{'message':'Input whether you won, draw or loss against the banker and the multiplier'}, room=session_id)
+
+#after a non leader submits the results (win/draw/lose and multiplier), this is to process the individual results and let banker check
+@socketio.on('results_sent')
+def results_sent(data):
+    session_id = data['session_id']
+    results = data['results']
+    playerName = results['playerName']
+    outcome = results['outcome']
+    multiplier = float(results['multiplier'])
+    session = sessions[session_id]
+    results_submitted = session[results_submitted]
+    results_submitted[playerName] = {'outcome':outcome, 'multiplier':multiplier}
+    socketio.emit('update_leaders_UI', {'session_id': session_id}, room=session_id)
+
+@app.route('/check_results_submissions', methods=['POST'])
+def check_results_submissions():
+    data = request.json
+    session_id = data['session_id']
+    bets_submitted = sessions[session_id].get("bets_submitted", set())
+    results_submitted = sessions[session_id].get("results_submitted", {})
+
+    missing_players = bets_submitted - results_submitted.keys()
+
+    print('missing players')
+    print(missing_players)
+
+    if missing_players:
+        return {'success':False}
+    else:
+        return {'success':True}
 
 @socketio.on('process_results')
 def process_results(data):
@@ -174,26 +205,26 @@ def process_results(data):
     balances = session['players']
     bets = session['bets']
 
-    for result in results:
-        player = result['player']
-        outcome = result['outcome']
-        multiplier = result['multiplier']
+    for key, value in results.items():
+        player = key
+        outcome = value['outcome']
+        multiplier = value['multiplier']
 
         bet_amount = bets.get(player, 0)
 
         # Calculate the total change (bet_amount * multiplier)
         total_change = int(bet_amount) * int(multiplier)
 
-        if outcome == 'yes':
+        if outcome == 'Win':
             # Leader wins: Increase leader's balance and decrease player's balance
             balances[leader] += int(total_change)
             balances[player] -= int(total_change)
         
-        elif outcome == 'no':
+        elif outcome == 'Lose':
             balances[leader] -= int(total_change)
             balances[player] += int(total_change)
 
-        elif outcome == 'draw':
+        elif outcome == 'Draw':
             balances[leader] = balances[leader]
             balances[player] = balances[player]
 
