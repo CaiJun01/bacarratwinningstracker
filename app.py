@@ -169,7 +169,7 @@ def results_sent(data):
     outcome = results['outcome']
     multiplier = float(results['multiplier'])
     session = sessions[session_id]
-    results_submitted = session[results_submitted]
+    results_submitted = session['results_submitted']
     results_submitted[playerName] = {'outcome':outcome, 'multiplier':multiplier}
     print('results sent')
     socketio.emit('update_leaders_UI', {'session_id': session_id}, room=session_id)
