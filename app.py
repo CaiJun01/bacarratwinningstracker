@@ -10,6 +10,7 @@ app = Flask(__name__)
 # Allow multiple origins
 allowed_origins = [
     "https://676d80e025a5fb0008309898--courageous-cocada-d21642.netlify.app",
+    "https://courageous-cocada-d21642.netlify.app"
     "http://127.0.0.1:5501",
     "http://localhost:5501"
 ]
@@ -152,6 +153,11 @@ def on_start_round(data):
 
     # Notify non-leaders to place their bets
     emit('start_game', {'message': 'Round started! Please place your bets.'}, room=session_id)
+
+@socketio.on('triggerEnterWLandMultiples')
+def trigger_enter_WL_and_Multiples(data):
+    session_id = data['session_id']
+    emit('enterWLandMultiples',{'message':'Input whether you won, draw or loss against the banker and the multiple'}, room=session_id)
 
 @socketio.on('process_results')
 def process_results(data):
