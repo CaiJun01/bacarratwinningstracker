@@ -10,8 +10,7 @@ app = Flask(__name__)
 # Allow multiple origins
 allowed_origins = [
     "https://676d80e025a5fb0008309898--courageous-cocada-d21642.netlify.app",
-    "http://127.0.0.1:5501/create_session.html",
-    "http://127.0.0.1:5501/join_session.html"
+    "http://127.0.0.1:5501"
 ]
 
 socketio = SocketIO(app, cors_allowed_origins=allowed_origins, async_mode='eventlet')
