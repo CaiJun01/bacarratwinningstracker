@@ -171,6 +171,7 @@ def results_sent(data):
     session = sessions[session_id]
     results_submitted = session[results_submitted]
     results_submitted[playerName] = {'outcome':outcome, 'multiplier':multiplier}
+    print('results sent')
     socketio.emit('update_leaders_UI', {'session_id': session_id}, room=session_id)
 
 @app.route('/check_results_submissions', methods=['POST'])
