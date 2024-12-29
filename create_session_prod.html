@@ -236,11 +236,8 @@
                     enterBr.removed()
                     console.log('enterBr removed')
                 }
-                const waitingResults = document.createElement('p');
-                waitingResults.id = 'waitingResults'
-                waitingResults.innerText = `Waiting for players to input results...`
-                const container = document.getElementById("prompt");
-                container.appendChild(waitingResults)
+                const status = document.getElementById('status');
+                status.innerText = `Waiting for players to enter results...`
             })// end of enterResults onclick logic
         });//end of all bets received socket
 
@@ -328,8 +325,8 @@
                     console.log('result submission status', result)
                     if (result) {
                         console.log('Result is true, stopping checks.');
-                        const waitingResults = document.getElementById('waitingResults');
-                        waitingResults.innerText = 'All players have submitted their results. Please check and edit if necessary. Confirm once done.'
+                        const status = document.getElementById('status');
+                        status.innerText = 'All players have submitted their results. Please check and edit if necessary. Confirm once done.'
 
                         const container = document.getElementById("prompt");
                         const confirmResults = document.createElement("button");
@@ -404,10 +401,6 @@
 
                         document.getElementById("confirmResults").addEventListener('click', () => {
                             const results = extractTableData();
-
-                            const waitingResults = document.getElementById('waitingResults')
-                            waitingResults.remove(); // Removes the element from the DOM
-                            console.log('waitingResults removed')
 
                             const resultsTable = document.getElementById('results_table')
                             resultsTable.remove(); // Removes the element from the DOM
