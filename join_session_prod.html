@@ -259,27 +259,19 @@
         function displayBetsTable(bets) {
             const table = document.querySelector('#playersTable');
             let tableBody = table.querySelector('tbody');
-            tableBody.innerHTML = '';
+            let newInnerHTML = '';
 
-            // Populate table rows with bets data
             for (const [player, dets] of Object.entries(bets)) {
-                const row = document.createElement('tr');
-
-                const playerCell = document.createElement('td');
-                playerCell.textContent = player;
-
-                const balanceCell = document.createElement('td')
-                balanceCell.textContent = dets['balance']
-
-                const betCell = document.createElement('td');
-                betCell.textContent = dets['bet_amount'];
-
-                row.appendChild(playerCell);
-                row.appendChild(balanceCell)
-                row.appendChild(betCell);
-
-                tableBody.appendChild(row); // Append the row to the existing table body
+                newInnerHTML += `
+                    <tr>
+                        <td>${player}</td>
+                        <td>${dets['balance']}</td>
+                        <td>${dets['bet_amount']}</td>
+                    </tr>
+                `;
             }
+            // Replace the table body content with the new HTML
+            tableBody.innerHTML = newInnerHTML;
         }//end of displayBetsTable function
 
         socket.on("enterWLandMultiples", (data) => {
