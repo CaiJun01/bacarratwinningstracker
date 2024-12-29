@@ -340,7 +340,7 @@
                         
                         // Make table columns editable
                         const table = document.getElementById('results_table');
-                        const editableCells = table.querySelectorAll('[data-editable]');
+                        const editableCells = table.querySelectorAll('[data-editable="true"]');
 
                         editableCells.forEach((cell, index) => {
                             console.log(`Cell ${index}:`, cell.textContent.trim());
