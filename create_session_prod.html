@@ -319,11 +319,10 @@
 
                 // Append the table to the container
                 container.appendChild(table);
+
+                const dat = {'session_id':sessionID}
+                checkResultsSubmissionStatus(dat);
             })
-
-            const dat = {'session_id':sessionID}
-            checkResultsSubmissionStatus(dat);
-
         })
 
         function checkResultsSubmissionStatus(data) {
