@@ -329,10 +329,22 @@
                         status.innerText = 'All players have submitted their results. Please check and edit if necessary. Confirm once done.'
 
                         const container = document.getElementById("prompt");
-                        const confirmResults = document.createElement("button");
-                        confirmResults.innerText = 'Confirm Results';
-                        confirmResults.id = 'confirmResults';
 
+                        let confirmResults = document.getElementById('confirmResults')
+                        if (!confirmResults){
+                            confirmResults = document.createElement("button");
+                            confirmResults.innerText = 'Confirm Results';
+                            confirmResults.id = 'confirmResults';
+
+                            // Create a <br> element for spacing
+                            const br = document.createElement('br');
+                            br.id = 'confirmbr'
+
+                            // Append the button and <br> to the container
+                            container.appendChild(br);
+                            container.appendChild(confirmResults);
+                        }
+                        
                         // Make table columns editable
                         const table = document.getElementById('results_table');
                         const editableCells = table.querySelectorAll('[data-editable]');
@@ -391,13 +403,7 @@
 
                         });
 
-                        // Create a <br> element for spacing
-                        const br = document.createElement('br');
-                        br.id = 'confirmbr'
-
-                        // Append the button and <br> to the container
-                        container.appendChild(br);
-                        container.appendChild(confirmResults);
+                        
 
                         document.getElementById("confirmResults").addEventListener('click', () => {
                             const results = extractTableData();
