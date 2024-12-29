@@ -119,6 +119,8 @@ def on_place_bet(data):
     session["bets"][player_name] = bet_amount
     session["bets_submitted"].add(player_name)
 
+    emit('bet_placed',{'playerName':player_name, 'currentBalance':session['players'][player_name], 'betAmount':session['bets'][player_name]},room = session_id)
+
     # Notify the leader when all bets are in
     non_leaders = set(session["players"].keys()) - {session["leader"]}
     if session["bets_submitted"] == non_leaders:

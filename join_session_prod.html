@@ -194,25 +194,42 @@
                     session_id: sessionId,
                     player_name: playerName,
                     bet_amount: document.getElementById('betAmount').value
-                    });
-                    fetchLeaderAndUpdateUI();
-                    document.getElementById('betamount').innerHTML+= `<p>Bets submitted successfully!</p>`
-                    document.getElementById('displaytable').innerHTML = `
-                        <h2>Bets Placed</h2>
-                        <table border="1" id="playersTable">
-                        <thead>
-                                    <tr>
-                                        <th>Player</th>
-                                        <th>Current Balance</th>
-                                        <th>Bet Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                        </table>
-                                `
+                });
+                fetchLeaderAndUpdateUI();
+                document.getElementById('betamount').innerHTML+= `<p>Bets submitted successfully!</p>`
+                document.getElementById('displaytable').innerHTML = `
+                    <h2>Bets Placed</h2>
+                    <table border="1" id="playersTable">
+                    <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Current Balance</th>
+                                    <th>Bet Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                    </table>
+                    `
                     // Start checking
-                intervalId = setInterval(periodicCalls, 2000);
-                periodicCalls();
+                socket.on('bet_placed', (data) => {
+                    const { playerName, currentBalance, betAmount } = data;
+
+                    // Find the table body
+                    const tabBod = document.querySelector('#playersTable tbody');
+
+                    const newRow = `
+                        <tr>
+                            <td>${playerName}</td>
+                            <td>${currentBalance}</td>
+                            <td>${betAmount}</td>
+                        </tr>
+                    `;
+
+                    // Append the new row to the table body
+                    tabBod.innerHTML += newRow;
+                })
+                // intervalId = setInterval(periodicCalls, 2000);
+                // periodicCalls();
             });
         })
 
