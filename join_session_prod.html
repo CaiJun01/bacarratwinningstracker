@@ -106,7 +106,10 @@
 
                 fetchLeaderAndUpdateUI();
                 setTimeout(fetchPlayers, 0);
-                fetchIntervalId = setInterval(fetchPlayers, 2000); // Poll every 2 seconds
+                if (fetchIntervalId) {
+                    clearInterval(fetchIntervalId); // Clear any existing interval
+                }
+                fetchIntervalId = setInterval(fetchPlayers, 2000); // Start a new interval
             });
             // Fetch players initially and every 5 seconds
             
