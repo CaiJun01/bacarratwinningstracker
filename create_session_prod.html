@@ -353,14 +353,12 @@
                                 // select.style.marginTop = "-1px"; // Adjust for alignment
                                 select.style.width = "14%"
                                 select.style.display = "block"
+
                                 const options = ['Win', 'Lose', 'Draw'];
                                 options.forEach(optionValue => {
                                     const option = document.createElement("option");
                                     option.value = optionValue;
                                     option.textContent = optionValue;
-
-                                    console.log(optionValue,'1')
-                                    console.log(currentValue)
 
                                     // Preselect the option that matches the current cell value
                                     if (optionValue === currentValue) {
@@ -377,7 +375,7 @@
 
                                 const input = document.createElement("input");
                                 input.type = "number";
-                                input.step = "0.1"; // Allow up to 1 decimal point
+                                input.step = "1"; // Allow up to 1 decimal point
                                 input.min = "0"; // Set minimum value to 0
                                 input.value = currentValue;
                                 input.style.position = "absolute"; // Overlay on top of text
@@ -387,13 +385,24 @@
                                 input.style.display = "block"
                                 input.style.textAlign = "center";
 
-                                // Ensure only valid numbers are entered
-                                input.addEventListener("input", () => {
-                                    const value = input.value;
-                                    if (!/^\d+(\.\d{0,1})?$/.test(value)) {
-                                        input.value = value.slice(0, -1); // Remove the invalid character
+                                const dropdown = editableCells[index - 1].dropdown;
+                                dropdown.addEventListener("change", () => {
+                                    if (dropdown.value === "Win" || dropdown.value === "Lose") {
+                                        input.min = "1"; // Set minimum to 1
+                                        if (input.value < 1) {
+                                            input.value = "1"; // Adjust current value to match the new minimum
+                                        }
+                                    } else {
+                                        input.min = "0"; // Reset minimum to 0 for "Draw"
                                     }
                                 });
+                                // Ensure only valid numbers are entered
+                                // input.addEventListener("input", () => {
+                                //     const value = input.value;
+                                //     if (!/^\d+(\.\d{0,1})?$/.test(value)) {
+                                //         input.value = value.slice(0, -1); // Remove the invalid character
+                                //     }
+                                // });
                                 cell.textContent = ""; // Clear the existing text content
                                 cell.appendChild(input);
                             }
