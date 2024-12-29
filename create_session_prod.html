@@ -416,8 +416,6 @@
                             const resultsTable = document.getElementById('results_table')
                             resultsTable.remove(); // Removes the element from the DOM
                             console.log('resultsTable removed')
-
-                            socket.emit('process_results', { session_id: sessionID, player_name: data['leader'], results: results });
                             console.log("confirmResults clicked");
                             const confirmResults = document.getElementById("confirmResults")
                             const confirmBr = document.getElementById('confirmbr')
@@ -427,6 +425,7 @@
                                 confirmBr.remove(); // Removes the element from the DOM
                                 console.log('confirmBr removed')
                             }
+                            socket.emit('process_results', { session_id: sessionID, player_name: data['leader'], results: results });
                         })// end of confirmResults onclick logic
                         
                     } else {
