@@ -292,6 +292,9 @@
                     else if (key1Value === 'Lose'){
                         actualValue = 'Win'
                     }
+                    else{
+                        actualValue = 'Draw'
+                    }
                     const key1Cell = document.createElement("td");
                     key1Cell.textContent = `${actualValue}`;
                     key1Cell.setAttribute('data-editable', true);
@@ -329,21 +332,6 @@
                         status.innerText = 'All players have submitted their results. Please check and edit if necessary. Confirm once done.'
 
                         const container = document.getElementById("prompt");
-
-                        let confirmResults = document.getElementById('confirmResults')
-                        if (!confirmResults){
-                            confirmResults = document.createElement("button");
-                            confirmResults.innerText = 'Confirm Results';
-                            confirmResults.id = 'confirmResults';
-
-                            // Create a <br> element for spacing
-                            const br = document.createElement('br');
-                            br.id = 'confirmbr'
-
-                            // Append the button and <br> to the container
-                            container.appendChild(br);
-                            container.appendChild(confirmResults);
-                        }
                         
                         // Make table columns editable
                         const table = document.getElementById('results_table');
@@ -400,10 +388,22 @@
                                 cell.textContent = ""; // Clear the existing text content
                                 cell.appendChild(input);
                             }
-
                         });
 
-                        
+                        let confirmResults = document.getElementById('confirmResults')
+                        if (!confirmResults){
+                            confirmResults = document.createElement("button");
+                            confirmResults.innerText = 'Confirm Results';
+                            confirmResults.id = 'confirmResults';
+
+                            // Create a <br> element for spacing
+                            const br = document.createElement('br');
+                            br.id = 'confirmbr'
+
+                            // Append the button and <br> to the container
+                            container.appendChild(br);
+                            container.appendChild(confirmResults);
+                        }
 
                         document.getElementById("confirmResults").addEventListener('click', () => {
                             const results = extractTableData();
