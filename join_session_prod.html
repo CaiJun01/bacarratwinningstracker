@@ -183,7 +183,7 @@
             })
             document.getElementById('betamount').innerHTML = `
                 <h1>Enter Your Bet Amount</h1>
-                <input type="number" step = ".01" id="betAmount" placeholder="Type bet amount here">
+                <input type="number" step = "1" min = "1" id="betAmount" placeholder="Type bet amount here">
                 <button id = "submitBetAmount">Submit Amount</button>
                 `
             document.getElementById("submitBetAmount").addEventListener("click", () => {
@@ -349,7 +349,8 @@
             });
             const multiplierInput = document.createElement("input");
             multiplierInput.type = "number";
-            multiplierInput.step = "0.01";
+            multiplierInput.step = "1";
+            multiplierInput.min = "1";
             multiplierInput.name = `multiplier`;
             multiplierInput.placeholder = "Multiplier";
 
