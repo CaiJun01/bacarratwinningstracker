@@ -343,6 +343,7 @@
                         const editableCells = table.querySelectorAll('[data-editable]');
 
                         editableCells.forEach((cell, index) => {
+                            console.log(`Cell ${index}:`, cell.textContent.trim());
                             if (index % 2 === 0){
                                 const currentValue = cell.textContent.trim(); // Get the current value of the cell
 
