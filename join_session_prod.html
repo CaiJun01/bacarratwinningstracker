@@ -282,8 +282,120 @@
             }
         }//end of displayBetsTable function
 
+        socket.on("enterWLandMultiples", (data) => {
+            const message = data['message']
+
+            alert(message)
+
+            const form = document.createElement("form");
+            form.id = "winningsForm";
+
+            const instructions = document.createElement("p");
+            instructions.innerHTML = `<b>${message}</b>`;
+            form.appendChild(instructions);
+
+            // Input for win/loss (Yes/No)
+            const outcomes = [
+                { value: "Win", label: "Win" },
+                { value: "Draw", label: "Draw" },
+                { value: "Lose", label: "Lose" }
+            ];
+
+            const radioGroupDiv = document.createElement("div");
+            radioGroupDiv.style.display = "flex"; // Use flexbox to arrange items side by side
+            radioGroupDiv.style.gap = "10px"; // Add spacing between radio buttons
+
+            outcomes.forEach(outcome => {
+                const radioDiv = document.createElement("div"); // Div to group the radio button and label
+                radioDiv.style.display = "inline-block"; // Keep each radio button-label pair inline
+
+                const radioInput = document.createElement("input");
+                radioInput.type = "radio";
+                radioInput.name = "result"; // Group all radio buttons together
+                radioInput.value = outcome.value;
+
+                // Create the label
+                const radioLabel = document.createElement("label");
+                radioLabel.textContent = outcome.label;
+                radioLabel.htmlFor = `result_${outcome.value}`; // Associate label with radio button
+                radioInput.id = `result_${outcome.value}`;
+
+                // Append radio button and label to the container
+                radioDiv.appendChild(radioInput);
+                radioDiv.appendChild(radioLabel);
+
+                radioGroupDiv.appendChild(radioDiv); // Append the radio pair to the group container
+            });
+            const multiplierInput = document.createElement("input");
+            multiplierInput.type = "number";
+            multiplierInput.step = "0.01";
+            multiplierInput.name = `multiplier`;
+            multiplierInput.placeholder = "Multiplier";
+
+            form.appendChild(radioGroupDiv)
+            form.appendChild(multiplierInput)
+            const br = document.createElement("br")
+            form.appendChild(br)
+
+            const submitButton = document.createElement("button");
+                        
+            submitButton.type = "submit";
+            submitButton.innerText = "Submit Results";
+
+
+            form.appendChild(submitButton);
+
+            container = document.getElementById('prompt')
+            container.appendChild(form)
+
+            form.addEventListener("submit", (event) => {
+                event.preventDefault();
+
+                const formData = new FormData(form);
+
+                const outcome = formData.get("result"); // Get the selected radio button value
+                const multiplier = formData.get("multiplier");
+
+                if (!outcome || !multiplier) {
+                    alert("Please select an outcome and enter a multiplier.");
+                    return;
+                }
+
+                const result = {
+                    playerName: playerName,
+                    outcome: outcome,
+                    multiplier: parseFloat(multiplier)
+                };
+
+                // Disable radio buttons
+                const radioButtons = form.querySelectorAll("input[type='radio']");
+                radioButtons.forEach((radio) => {
+                    radio.disabled = true;
+                });
+
+                // Disable multiplier input
+                multiplierInput.disabled = true;
+
+                // Disable submit button
+                submitButton.disabled = true;
+
+                const submitSuccess = document.createElement('p')
+                submitSuccess.id = 'submitSuccess'
+                submitSuccess.innerText = 'You have successfully submitted the results for this round'
+
+                container = document.getElementById('prompt')
+                container.appendChild(submitSuccess)
+
+                socket.emit("results_sent", { session_id: sessionId, results: result });
+            })
+        })
+
         socket.on("next_round", (data) => {
             periodicCalls();
+            const winningsForm = document.getElementById('winningsForm')
+            winningsForm.remove();
+            const submitSuccess = document.getElementById('submitSuccess')
+            submitSuccess.remove();
         })
                     
         

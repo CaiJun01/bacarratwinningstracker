@@ -208,9 +208,7 @@
         }//end of displayBetsTable
 
         socket.on("all_bets_received", (data) => { //upon receiving all bets
-
             const container = document.getElementById("prompt"); // Ensure this element exists in your HTML
-
             // Create enterResults button if the button does not exists
             if (!document.getElementById("enterResults")) {
                 const enterResults = document.createElement("button");
@@ -227,122 +225,241 @@
 
             //logic for clicking enter results button
             enterResults.addEventListener('click', () => {
+                socket.emit('triggerEnterWLandMultiples', { session_id: sessionID, player_name: data['leader'] });
                 console.log("enterResults clicked");
-                document.getElementById('enterResults').style.display=`none`
-                axios.get(`https://bacarratwinningstracker.onrender.com/check_session`)
-                    .then((response) => {
-                        const l = response.data[sessionID]['leader']
-                        const p = response.data[sessionID]['players']
-                        let player_names = Object.keys(p).filter(player => player !== l);
-                        console.log("Player Names without Leader:", player_names);
-
-                        if (!document.getElementById("leaderInputForm")){
-                            const form = document.createElement("form");
-                            form.id = "leaderInputForm";
-
-                            const instructions = document.createElement("p");
-                            instructions.innerHTML = "<b>Indicate whether you won against each player and input the multiplier:</b>";
-                            form.appendChild(instructions);
-
-                            player_names.forEach((player)=>{
-                                const playerDiv = document.createElement("div");
-                                const playerLabel = document.createElement("label");
-                                playerLabel.innerHTML = `Against <b>${player}</b>: `;
-                                playerDiv.appendChild(playerLabel);
-
-                                // Input for win/loss (Yes/No)
-                                const outcomes = [
-                                    { value: "yes", label: "Win" },
-                                    { value: "draw", label: "Draw" },
-                                    { value: "no", label: "Lose" }
-                                ];
-                            
-                            const radioGroupDiv = document.createElement("div");
-                            radioGroupDiv.style.display = "flex"; // Use flexbox to arrange items side by side
-                            radioGroupDiv.style.gap = "10px"; // Add spacing between radio buttons
-
-                            outcomes.forEach(outcome => {
-                                const radioDiv = document.createElement("div"); // Div to group the radio button and label
-                                radioDiv.style.display = "inline-block"; // Keep each radio button-label pair inline
-
-                                const radioInput = document.createElement("input");
-                                radioInput.type = "radio";
-                                radioInput.name = `win_${player}`; // Group all radio buttons for this player
-                                radioInput.value = outcome.value;
-
-                                const radioLabel = document.createElement("label");
-                                radioLabel.textContent = outcome.label;
-                                radioLabel.htmlFor = `win_${player}_${outcome.value}`; // Associate label with radio button
-                                radioInput.id = `win_${player}_${outcome.value}`;
-
-                                // Append radio button and label to the container
-                                radioDiv.appendChild(radioInput);
-                                radioDiv.appendChild(radioLabel);
-
-                                radioGroupDiv.appendChild(radioDiv); // Append the radio pair to the group container
-                            });
-                            playerDiv.appendChild(radioGroupDiv); // Append the radio group to the player's div
-
-                            // Input for multiplier
-                            const multiplierInput = document.createElement("input");
-                            multiplierInput.type = "number";
-                            multiplierInput.step = "0.01";
-                            multiplierInput.name = `multiplier_${player}`;
-                            multiplierInput.placeholder = "Multiplier";
-                            playerDiv.appendChild(multiplierInput);
-                            const br = document.createElement("br")
-
-                            form.appendChild(playerDiv);
-                            form.appendChild(br)
-                        });
-
-                        // Add a Submit button
-                        const submitButton = document.createElement("button");
-                        
-                        submitButton.type = "submit";
-                        submitButton.innerText = "Submit Results";
-                        
-                        form.appendChild(submitButton);
-
-                        container.appendChild(form);  
-                        
-                        form.addEventListener("submit", (event) => {
-                        event.preventDefault(); // Prevent default form submission behavior
-                        
-                        const formData = new FormData(form);
-                        const results = [];
-
-                        // Loop through each player to extract win and multiplier values
-                        player_names.forEach((player) => {
-                            // Retrieve the value of the selected radio button for this player
-                            const winValue = formData.get(`win_${player}`);
-                            const win = winValue === "yes"; // Convert "yes" to a boolean (true/false)
-
-                            // Retrieve and parse the multiplier value
-                            const multiplier = parseFloat(formData.get(`multiplier_${player}`));
-
-                            // Push the result object for this player
-                            results.push({ player, win, outcome: winValue, multiplier });
-                        });
-
-                        const toremove = document.getElementById("leaderInputForm");
-                        if (toremove) {
-                            toremove.remove(); // Removes the element from the DOM
-                            console.log('element removed')
-                        }
-
-                        // Emit the results to the server
-                        socket.emit("process_results", { session_id: sessionID, results: results });
-                        periodicCalls() // update display table
-                        document.getElementById('enterResults').style.display=``
-                        });
-                    }                 
-                })
-                .catch((error) => {
-                console.error("Error fetching non-leaders:", error);
-                });
+                const enterResults = document.getElementById("enterResults")
+                if (enterResults) {
+                    enterResults.remove(); // Removes the element from the DOM
+                    console.log('enterResults removed')
+                }
+                const waitingResults = document.createElement('p');
+                waitingResults.id = 'waitingResults'
+                waitingResults.innerText = `Waiting for players to input results...`
+                const container = document.getElementById("prompt");
+                container.appendChild(waitingResults)
             })// end of enterResults onclick logic
         });//end of all bets received socket
+
+        socket.on("update_leaders_UI", (data) => {
+            console.log('updating leaders UI')
+            const tab = document.getElementById('results_table')
+            if (tab){
+                tab.remove()
+            }
+            axios.get(`https://bacarratwinningstracker.onrender.com/check_session`).then(response => {
+                const results_submitted = response.data[sessionID]['results_submitted']
+                const container = document.getElementById("prompt");
+
+                // Create the table element
+                const table = document.createElement("table");
+                table.id = 'results_table'
+                table.border = "1"; // Add a border for better visibility
+
+                // Create the table header
+                const headerRow = document.createElement("tr");
+
+                const headerPlayer = document.createElement("th");
+                headerPlayer.textContent = "Player Name";
+                headerRow.appendChild(headerPlayer);
+
+                const headerKey1 = document.createElement("th");
+                headerKey1.textContent = "Your outcome against players";
+                headerRow.appendChild(headerKey1);
+
+                const headerKey2 = document.createElement("th");
+                headerKey2.textContent = "Multiplier";
+                headerRow.appendChild(headerKey2);
+
+                table.appendChild(headerRow);
+
+                console.log(results_submitted)
+
+                for (const [playerName, playerValue] of Object.entries(results_submitted)) {
+                    const row = document.createElement("tr");
+                    // Player name column
+                    const playerCell = document.createElement("td");
+                    playerCell.textContent = playerName;
+                    row.appendChild(playerCell);
+
+                    // First key-value pair column
+                    const key1Value = playerValue['outcome'];
+                    console.log('key1Value',key1Value)
+                    let actualValue
+                    if (key1Value ==='Win'){
+                        actualValue = 'Lose'
+                    }
+                    else if (key1Value === 'Lose'){
+                        actualValue = 'Win'
+                    }
+                    const key1Cell = document.createElement("td");
+                    key1Cell.textContent = `${actualValue}`;
+                    key1Cell.setAttribute('data-editable', true);
+                    row.appendChild(key1Cell);
+
+                    // Second key-value pair column
+                    const key2Value = playerValue['multiplier'];
+                    console.log('key2Value',key2Value)
+                    const key2Cell = document.createElement("td");
+                    key2Cell.textContent = `${key2Value}`;
+                    key2Cell.setAttribute('data-editable', true);
+                    row.appendChild(key2Cell);
+
+                    table.appendChild(row);
+                    
+                }
+
+                // Append the table to the container
+                container.appendChild(table);
+            })
+
+            const dat = {'session_id':sessionID}
+            checkResultsSubmissionStatus(dat);
+
+        })
+
+        function checkResultsSubmissionStatus(data) {
+            axios.post('https://bacarratwinningstracker.onrender.com/check_results_submissions', data) // Replace with your API URL
+                .then(response => {
+                    const result = response.data['success']; // Assuming the API response has a 'success' key
+                    console.log('result submission status', result)
+                    if (result) {
+                        console.log('Result is true, stopping checks.');
+                        const waitingResults = document.getElementById('waitingResults');
+                        waitingResults.innerText = 'All players have submitted their results. Please check and edit if necessary. Confirm once done.'
+
+                        const container = document.getElementById("prompt");
+                        const confirmResults = document.createElement("button");
+                        confirmResults.innerText = 'Confirm Results';
+                        confirmResults.id = 'confirmResults';
+
+                        // Make table columns editable
+                        const table = document.getElementById('results_table');
+                        const editableCells = table.querySelectorAll('[data-editable]');
+
+                        editableCells.forEach((cell, index) => {
+                            if (index % 2 === 0){
+                                const currentValue = cell.textContent.trim(); // Get the current value of the cell
+
+                                // Create a dropdown (select element)
+                                const select = document.createElement("select");
+                                select.style.position = "absolute"; // Overlay on top of text
+                                select.style.opacity = "0.8"; // Semi-transparent for visibility
+                                // select.style.marginTop = "-1px"; // Adjust for alignment
+                                select.style.width = "14%"
+                                select.style.display = "block"
+                                const options = ['Win', 'Lose', 'Draw'];
+                                options.forEach(optionValue => {
+                                    const option = document.createElement("option");
+                                    option.value = optionValue;
+                                    option.textContent = optionValue;
+
+                                    // Preselect the option that matches the current cell value
+                                    if (optionValue === currentValue) {
+                                        option.selected = true;
+                                    }
+
+                                    select.appendChild(option);
+                                });
+                                cell.textContent = ""; // Clear the existing text content
+                                cell.appendChild(select);
+                            }else{
+                                // Column 3: Text input for "Multiplier"
+                                const currentValue = cell.textContent.trim(); // Get the current value of the cell
+
+                                const input = document.createElement("input");
+                                input.type = "number";
+                                input.step = "0.1"; // Allow up to 1 decimal point
+                                input.value = currentValue;
+                                input.style.position = "absolute"; // Overlay on top of text
+                                input.style.opacity = "0.8"; // Semi-transparent for visibility
+                                // input.style.margin = "0 auto"; // Adjust for alignment
+                                input.style.width = "4%";
+                                input.style.display = "block"
+                                input.style.textAlign = "center";
+
+                                // Ensure only valid numbers are entered
+                                input.addEventListener("input", () => {
+                                    const value = input.value;
+                                    if (!/^\d+(\.\d{0,1})?$/.test(value)) {
+                                        input.value = value.slice(0, -1); // Remove the invalid character
+                                    }
+                                });
+                                cell.textContent = ""; // Clear the existing text content
+                                cell.appendChild(input);
+                            }
+
+                        });
+
+                        // Create a <br> element for spacing
+                        const br = document.createElement('br');
+
+                        // Append the button and <br> to the container
+                        container.appendChild(br);
+                        container.appendChild(confirmResults);
+
+                        document.getElementById("confirmResults").addEventListener('click', () => {
+                            const results = extractTableData();
+
+                            const waitingResults = document.getElementById('waitingResults')
+                            waitingResults.remove(); // Removes the element from the DOM
+                            console.log('waitingResults removed')
+
+                            const resultsTable = document.getElementById('results_table')
+                            resultsTable.remove(); // Removes the element from the DOM
+                            console.log('resultsTable removed')
+
+                            socket.emit('process_results', { session_id: sessionID, player_name: data['leader'], results: results });
+                            console.log("confirmResults clicked");
+                            const confirmResults = document.getElementById("confirmResults")
+                            if (confirmResults) {
+                                confirmResults.remove(); // Removes the element from the DOM
+                                console.log('confirmResults removed')
+                            }
+                        })// end of confirmResults onclick logic
+                        
+                    } else {
+                        console.log('Result is false, retrying in 2 seconds...');
+                        setTimeout(() => checkResultsSubmissionStatus(data), 2000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error occurred:', error);
+                });
+        }
+
+        function extractTableData() {
+            // Initialize the resulting object
+            const resultsObject = {};
+
+            // Get the table by its ID
+            const table = document.getElementById('results_table');
+
+            // Get all rows in the table body (excluding the header row)
+            const rows = table.getElementsByTagName('tr');
+
+            // Loop through each row (skip the header row)
+            for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+
+                // Extract player name from the first column
+                const playerName = cells[0].textContent.trim();
+
+                const key1Select = cells[1].getElementsByTagName('select')[0];
+                const key1Value = key1Select ? key1Select.value.trim() : cells[1].textContent.trim();
+
+                // Extract key2 value from input fields or text in the third column
+                const key2Input = cells[2].getElementsByTagName('input')[0];
+                const key2Value = key2Input ? parseFloat(key2Input.value.trim()) : parseFloat(cells[2].textContent.trim());
+
+                // Create an object for this player
+                resultsObject[playerName] = {
+                    'outcome': key1Value,
+                    'multiplier': key2Value
+                };
+            }
+            console.log('Extracted Results Object:', resultsObject);
+            return resultsObject;
+        }
 
         socket.on("next_round", (data) => {
             console.log(`Starting next round: ${data.round_count}`);
@@ -357,9 +474,9 @@
             }
         });
 
-      socket.on("error", (data) => {
-        alert(data.error);
-      });
+        socket.on("error", (data) => {
+            alert(data.error);
+        });
 
       
         </script>
