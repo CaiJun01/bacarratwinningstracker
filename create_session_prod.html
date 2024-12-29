@@ -388,6 +388,14 @@
                                 input.style.textAlign = "center";
 
                                 const dropdown = editableCells[index - 1].dropdown;
+
+                                // **Initial Check for Dropdown Value**
+                                if (dropdown.value === "Draw") {
+                                    input.min = "0";
+                                    input.value = "0"; // Force multiplier to 0
+                                    input.disabled = true; // Disable input for "Draw"
+                                }
+                                
                                 dropdown.addEventListener("change", () => {
                                     if (dropdown.value === "Win" || dropdown.value === "Lose") {
                                         input.disabled = false;
