@@ -369,6 +369,8 @@
                                 });
                                 cell.textContent = ""; // Clear the existing text content
                                 cell.appendChild(select);
+                                
+                                cell.dropdown = select;
                             }else{
                                 // Column 3: Text input for "Multiplier"
                                 const currentValue = cell.textContent.trim(); // Get the current value of the cell
