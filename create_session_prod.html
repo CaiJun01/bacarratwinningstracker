@@ -139,6 +139,7 @@
         }//end of fetchPlayers function
 
         function periodicCalls() {
+            console.log('calling periodCalls')
             displayBets(); // Call endpoint 1 to display data
             fetchCondition()       // Call endpoint 2 to check the condition
                 .then(condition => {
