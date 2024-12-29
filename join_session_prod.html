@@ -386,8 +386,16 @@
 
                 const formData = new FormData(form);
 
+                if (multiplierInput.disabled) {
+                    multiplierInput.disabled = false;
+                }
+
                 const outcome = formData.get("result"); // Get the selected radio button value
                 const multiplier = formData.get("multiplier");
+
+                if (outcome === "Draw") {
+                    multiplierInput.disabled = true;
+                }
 
                 console.log('outcome',outcome)
                 console.log('multiple',multiplier)
