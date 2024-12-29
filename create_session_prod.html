@@ -228,6 +228,7 @@
 
             //logic for clicking enter results button
             enterResults.addEventListener('click', () => {
+                clearInterval(intervalId); // Stop periodic calls
                 socket.emit('triggerEnterWLandMultiples', { session_id: sessionID, player_name: data['leader'] });
                 console.log("enterResults clicked");
                 const enterResults = document.getElementById("enterResults")
