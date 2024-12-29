@@ -436,6 +436,8 @@
 
         socket.on("next_round", (data) => {
             // periodicCalls();
+            const dispTable = document.getElementById('displaytable')
+            dispTable.innerHTML=''
             const winningsForm = document.getElementById('winningsForm')
             winningsForm.remove();
             const submitSuccess = document.getElementById('submitSuccess')
