@@ -19,6 +19,7 @@
         const socket = io("https://bacarratwinningstracker.onrender.com", {multiplex: false});
         let sessionID
         let intervalId;
+        let timeoutId;
         function createSession() {
             const name = document.getElementById('nameInput').value.trim(); // Get the input value and trim whitespace
             if (!name) { // Check if the input is empty
@@ -429,7 +430,8 @@
                         
                     } else {
                         console.log('Result is false, retrying in 2 seconds...');
-                        setTimeout(() => checkResultsSubmissionStatus(data), 2000);
+                        clearTimeout(timeoutId); // Cancel previous timeout
+                        timeoutId = setTimeout(() => checkResultsSubmissionStatus(data), 2000);
                     }
                 })
                 .catch(error => {
