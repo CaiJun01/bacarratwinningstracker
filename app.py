@@ -241,6 +241,8 @@ def process_results(data):
     # session["bets"] = {}
     # Emit the updated balances to all players
     print(f"Updated balances for session {session_id}: {balances}")
+
+    session["results_submitted"] = {}
     socketio.emit('next_round', {'session_id': session_id}, room=session_id)
 
 # @app.route("/start_round/<session_id>", methods=["POST"])
