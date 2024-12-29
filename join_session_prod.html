@@ -212,21 +212,26 @@
                     `
                     // Start checking
                 socket.on('bet_placed', (data) => {
-                    const { playerName, currentBalance, betAmount } = data;
 
-                    // Find the table body
-                    const tabBod = document.querySelector('#playersTable tbody');
+                    //don't use data. Axios call to get all
 
-                    const newRow = `
-                        <tr>
-                            <td>${playerName}</td>
-                            <td>${currentBalance}</td>
-                            <td>${betAmount}</td>
-                        </tr>
-                    `;
-
-                    // Append the new row to the table body
-                    tabBod.innerHTML += newRow;
+                    axios.get(`https://bacarratwinningstracker.onrender.com/check_session`)
+                        .then(response => {
+                            const players = response.data[sessionId]['players']
+                            const bets = response.data[sessionId]['bets']
+                            let betsandbalance = {};
+                            for (const player in players) {
+                                betsandbalance[player] = {
+                                    balance: players[player],
+                                    bet_amount: bets[player] !== undefined ? bets[player] : 'NA'
+                                };
+                            }
+                            displayBetsTable(betsandbalance)
+                        })
+                        .catch(error => {
+                            console.error("Error fetching display bets:", error);
+                        })
+                    
                 })
                 // intervalId = setInterval(periodicCalls, 2000);
                 // periodicCalls();
