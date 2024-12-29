@@ -217,6 +217,7 @@
 
                 // Create a <br> element for spacing
                 const br = document.createElement('br');
+                br.id = 'enterbr'
 
                 // Append the button and <br> to the container
                 container.appendChild(br);
@@ -228,9 +229,12 @@
                 socket.emit('triggerEnterWLandMultiples', { session_id: sessionID, player_name: data['leader'] });
                 console.log("enterResults clicked");
                 const enterResults = document.getElementById("enterResults")
+                const enterBr = document.getElementById('enterbr')
                 if (enterResults) {
                     enterResults.remove(); // Removes the element from the DOM
                     console.log('enterResults removed')
+                    enterBr.removed()
+                    console.log('enterBr removed')
                 }
                 const waitingResults = document.createElement('p');
                 waitingResults.id = 'waitingResults'
@@ -392,6 +396,7 @@
 
                         // Create a <br> element for spacing
                         const br = document.createElement('br');
+                        br.id = 'confirmbr'
 
                         // Append the button and <br> to the container
                         container.appendChild(br);
@@ -411,9 +416,12 @@
                             socket.emit('process_results', { session_id: sessionID, player_name: data['leader'], results: results });
                             console.log("confirmResults clicked");
                             const confirmResults = document.getElementById("confirmResults")
+                            const confirmBr = document.getElementById('confirmbr')
                             if (confirmResults) {
                                 confirmResults.remove(); // Removes the element from the DOM
                                 console.log('confirmResults removed')
+                                confirmBr.remove(); // Removes the element from the DOM
+                                console.log('confirmBr removed')
                             }
                         })// end of confirmResults onclick logic
                         
