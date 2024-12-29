@@ -389,6 +389,9 @@
                 const outcome = formData.get("result"); // Get the selected radio button value
                 const multiplier = formData.get("multiplier");
 
+                console.log('outcome',outcome)
+                console.log('multiple',multiplier)
+
                 if (!outcome || !multiplier) {
                     alert("Please select an outcome and enter a multiplier.");
                     return;
