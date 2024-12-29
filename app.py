@@ -13,11 +13,16 @@ allowed_origins = [
     "https://courageous-cocada-d21642.netlify.app",
     "http://127.0.0.1:5501",
     "http://localhost:5501",
-    "https://*.netlify.app"
 ]
 
-socketio = SocketIO(app, cors_allowed_origins=allowed_origins, async_mode='eventlet')
-CORS(app, resources={r"/*": {"origins": allowed_origins}})
+# Add a regex pattern to match dynamic subdomains
+dynamic_origin_pattern = r"https://[a-z0-9]+--courageous-cocada-d21642\.netlify\.app"
+
+socketio = SocketIO(app, cors_allowed_origins='*', async_mode='eventlet')
+# Configure CORS with Flask-CORS
+CORS(app, resources={
+    r"/*": {"origins": allowed_origins + [dynamic_origin_pattern]}  # Combine static URLs and regex
+})
 
 # In-memory data storage
 sessions = {}
