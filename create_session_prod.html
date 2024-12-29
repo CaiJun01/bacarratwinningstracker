@@ -369,7 +369,7 @@
                                 });
                                 cell.textContent = ""; // Clear the existing text content
                                 cell.appendChild(select);
-                                
+
                                 cell.dropdown = select;
                             }else{
                                 // Column 3: Text input for "Multiplier"
@@ -390,14 +390,26 @@
                                 const dropdown = editableCells[index - 1].dropdown;
                                 dropdown.addEventListener("change", () => {
                                     if (dropdown.value === "Win" || dropdown.value === "Lose") {
+                                        input.disabled = false;
                                         input.min = "1"; // Set minimum to 1
                                         if (input.value < 1) {
                                             input.value = "1"; // Adjust current value to match the new minimum
                                         }
-                                    } else {
-                                        input.min = "0"; // Reset minimum to 0 for "Draw"
+                                    } else if(dropdown.value === "Draw") {
+                                        input.min = "0";
+                                        input.value = "0"; // Force multiplier to 0
+                                        input.disabled = true; // Disable input for "Draw"
                                     }
                                 });
+
+                                // Ensure only valid numbers are entered
+                                input.addEventListener("input", () => {
+                                    const value = input.value;
+                                    if (value < input.min) {
+                                        input.value = input.min; // Ensure value adheres to the minimum
+                                    }
+                                });
+                                
                                 // Ensure only valid numbers are entered
                                 // input.addEventListener("input", () => {
                                 //     const value = input.value;
