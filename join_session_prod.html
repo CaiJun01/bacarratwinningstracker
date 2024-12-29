@@ -186,6 +186,21 @@
                 <input type="number" step = "1" min = "1" id="betAmount" placeholder="Type bet amount here">
                 <button id = "submitBetAmount">Submit Amount</button>
                 `
+
+            const betAmountInput = document.getElementById('betAmount');
+            if (betAmountInput){
+                betAmountInput.addEventListener('input', (event) => {
+                let va = event.target.value;
+
+                // Remove invalid characters like "." or "-"
+                va = va.replace(/[^0-9]/g, '');
+
+                // Set the cleaned value back to the input
+                event.target.value = va;
+                });
+            }
+
+
             document.getElementById("submitBetAmount").addEventListener("click", () => {
                 
                 const submitbut = document.getElementById('submitBetAmount')
@@ -349,10 +364,19 @@
             });
             const multiplierInput = document.createElement("input");
             multiplierInput.type = "number";
-            multiplierInput.step = "1";
-            multiplierInput.min = "1";
             multiplierInput.name = `multiplier`;
             multiplierInput.placeholder = "Multiplier";
+            multiplierInput.step = "1"; // Prevent decimals
+            multiplierInput.min = "1";  // Ensure no negative values
+            multiplierInput.addEventListener("input", (event) => {
+                let v = event.target.value;
+
+                // Remove non-numeric characters
+                v = v.replace(/[^0-9]/g, '');
+
+                // Set the cleaned value back to the input field
+                event.target.value = v;
+            });
 
             form.appendChild(radioGroupDiv)
             form.appendChild(multiplierInput)
