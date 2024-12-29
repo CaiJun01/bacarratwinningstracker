@@ -384,11 +384,11 @@
             form.addEventListener("submit", (event) => {
                 event.preventDefault();
 
-                const formData = new FormData(form);
-
                 if (multiplierInput.disabled) {
                     multiplierInput.disabled = false;
                 }
+
+                const formData = new FormData(form);
 
                 const outcome = formData.get("result"); // Get the selected radio button value
                 const multiplier = formData.get("multiplier");
