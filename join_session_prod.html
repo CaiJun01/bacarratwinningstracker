@@ -200,19 +200,7 @@
                 });
                 fetchLeaderAndUpdateUI();
                 document.getElementById('betamount').innerHTML+= `<p>Bets submitted successfully!</p>`
-                document.getElementById('displaytable').innerHTML = `
-                    <h2>Bets Placed</h2>
-                    <table border="1" id="playersTable">
-                    <thead>
-                                <tr>
-                                    <th>Player</th>
-                                    <th>Current Balance</th>
-                                    <th>Bet Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                    </table>
-                    `
+                
                     // Start checking
                 // intervalId = setInterval(periodicCalls, 2000);
                 // periodicCalls();
@@ -282,6 +270,23 @@
         // }//end of fetchCondition function
 
         function displayBetsTable(bets) {
+            const dispTable = document.getElementById('displaytable')
+            if (dispTable){
+                dispTable.innerHTML = `
+                <h2>Bets Placed</h2>
+                    <table border="1" id="playersTable">
+                    <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Current Balance</th>
+                                    <th>Bet Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                    </table>
+                    `
+            }
+                    
             const table = document.querySelector('#playersTable');
             let tableBody = table.querySelector('tbody');
             let newInnerHTML = '';
