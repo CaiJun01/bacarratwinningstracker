@@ -211,47 +211,14 @@
                     </table>
                     `
                     // Start checking
-                socket.on('bet_placed', (data) => {
-
-                    //don't use data. Axios call to get all
-
-                    axios.get(`https://bacarratwinningstracker.onrender.com/check_session`)
-                        .then(response => {
-                            const players = response.data[sessionId]['players']
-                            const bets = response.data[sessionId]['bets']
-                            let betsandbalance = {};
-                            for (const player in players) {
-                                betsandbalance[player] = {
-                                    balance: players[player],
-                                    bet_amount: bets[player] !== undefined ? bets[player] : 'NA'
-                                };
-                            }
-                            displayBetsTable(betsandbalance)
-                        })
-                        .catch(error => {
-                            console.error("Error fetching display bets:", error);
-                        })
-                    
-                })
                 // intervalId = setInterval(periodicCalls, 2000);
                 // periodicCalls();
             });
         })
 
-        function periodicCalls() {
-            displayBets(); // Call endpoint 1 to display data
-            fetchCondition()       // Call endpoint 2 to check the condition
-                .then(condition => {
-                    if (condition) { //condition usually returns false
-                        clearInterval(intervalId); // Stop periodic calls
-                        console.log("Condition met. Stopping periodic calls.");
-                        displayBets(); // Fetch endpoint 1 one last time for display 
-                    }
-                });
-        }//end of periodicCalls function
-
-        function displayBets(){
-            return axios.get(`https://bacarratwinningstracker.onrender.com/check_session`) // Replace with your display endpoint
+        socket.on('bet_placed', (data) => {
+            //don't use data. Axios call to get all
+            axios.get(`https://bacarratwinningstracker.onrender.com/check_session`)
                 .then(response => {
                     const players = response.data[sessionId]['players']
                     const bets = response.data[sessionId]['bets']
@@ -265,18 +232,50 @@
                     displayBetsTable(betsandbalance)
                 })
                 .catch(error => {
-                    console.error("Error fetching display data:", error);
-                });
-        }//end of displayBets function
+                    console.error("Error fetching display bets:", error);
+                })
 
-        function fetchCondition(){
-            return axios.get(`https://bacarratwinningstracker.onrender.com/check_bets/${sessionId}`) // Replace with your condition endpoint
-                .then(response => response.data['all_bets_in']) // Assuming the response contains { condition: true/false }
-                .catch(error => {
-                    console.error("Error fetching condition:", error);
-                    return false; // Default to false if the request fails
-                });
-        }//end of fetchCondition function
+        })
+
+        // function periodicCalls() {
+        //     displayBets(); // Call endpoint 1 to display data
+        //     fetchCondition()       // Call endpoint 2 to check the condition
+        //         .then(condition => {
+        //             if (condition) { //condition usually returns false
+        //                 clearInterval(intervalId); // Stop periodic calls
+        //                 console.log("Condition met. Stopping periodic calls.");
+        //                 displayBets(); // Fetch endpoint 1 one last time for display 
+        //             }
+        //         });
+        // }//end of periodicCalls function
+
+        // function displayBets(){
+        //     return axios.get(`https://bacarratwinningstracker.onrender.com/check_session`) // Replace with your display endpoint
+        //         .then(response => {
+        //             const players = response.data[sessionId]['players']
+        //             const bets = response.data[sessionId]['bets']
+        //             let betsandbalance = {};
+        //             for (const player in players) {
+        //                 betsandbalance[player] = {
+        //                     balance: players[player],
+        //                     bet_amount: bets[player] !== undefined ? bets[player] : 'NA'
+        //                 };
+        //             }
+        //             displayBetsTable(betsandbalance)
+        //         })
+        //         .catch(error => {
+        //             console.error("Error fetching display data:", error);
+        //         });
+        // }//end of displayBets function
+
+        // function fetchCondition(){
+        //     return axios.get(`https://bacarratwinningstracker.onrender.com/check_bets/${sessionId}`) // Replace with your condition endpoint
+        //         .then(response => response.data['all_bets_in']) // Assuming the response contains { condition: true/false }
+        //         .catch(error => {
+        //             console.error("Error fetching condition:", error);
+        //             return false; // Default to false if the request fails
+        //         });
+        // }//end of fetchCondition function
 
         function displayBetsTable(bets) {
             const table = document.querySelector('#playersTable');
