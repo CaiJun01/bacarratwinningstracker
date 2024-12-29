@@ -434,9 +434,9 @@
                         })// end of confirmResults onclick logic
                         
                     } else {
-                        console.log('Result is false, retrying in 2 seconds...');
-                        clearTimeout(timeoutId); // Cancel previous timeout
-                        timeoutId = setTimeout(() => checkResultsSubmissionStatus(data), 2000);
+                        console.log('Result is false, check again on next result sent!');
+                        // clearTimeout(timeoutId); // Cancel previous timeout
+                        // timeoutId = setTimeout(() => checkResultsSubmissionStatus(data), 2000);
                     }
                 })
                 .catch(error => {
