@@ -369,6 +369,18 @@
             container = document.getElementById('prompt')
             container.appendChild(form)
 
+            const radioButtons = form.querySelectorAll("input[type='radio']");
+            radioButtons.forEach((radio) => {
+                radio.addEventListener("change", () => {
+                    if (radio.value === "Draw") {
+                        multiplierInput.value = 0; // Automatically set multiplier to 0
+                        multiplierInput.disabled = true; // Disable the multiplier input
+                    } else {
+                        multiplierInput.value = ""; // Clear multiplier for other outcomes
+                        multiplierInput.disabled = false; // Enable the multiplier input
+                    }
+                });
+            });
             form.addEventListener("submit", (event) => {
                 event.preventDefault();
 

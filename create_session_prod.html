@@ -374,6 +374,7 @@
                                 const input = document.createElement("input");
                                 input.type = "number";
                                 input.step = "0.1"; // Allow up to 1 decimal point
+                                input.min = "0"; // Set minimum value to 0
                                 input.value = currentValue;
                                 input.style.position = "absolute"; // Overlay on top of text
                                 input.style.opacity = "0.8"; // Semi-transparent for visibility
