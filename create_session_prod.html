@@ -39,7 +39,7 @@
                     <div id="sessionDetails"></div>
                     <div id="round"></div>
                     <p id = "status"><b>Status:</b> Waiting for other players to join...</p>
-                    <h2 id = "tableheader">Players in Session</h2>
+                    <h1 id = "tableheader">Players in Session</h1>
                     <table border="1" id="playersTable">
                     <thead>
                         <tr>
@@ -395,7 +395,7 @@
                                     input.value = "0"; // Force multiplier to 0
                                     input.disabled = true; // Disable input for "Draw"
                                 }
-                                
+
                                 dropdown.addEventListener("change", () => {
                                     if (dropdown.value === "Win" || dropdown.value === "Lose") {
                                         input.disabled = false;
