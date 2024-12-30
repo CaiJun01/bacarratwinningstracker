@@ -160,8 +160,10 @@ def on_start_round(data):
     session["bets"] = {}
     session["bets_submitted"] = set()
 
+    players = session['players']
+
     # Notify non-leaders to place their bets
-    emit('start_game', {'message': 'Round started! Please place your bets.'}, room=session_id)
+    emit('start_game', {'message': 'Round started! Please place your bets.','players':players}, room=session_id)
 
 @socketio.on('triggerEnterWLandMultiples')
 def trigger_enter_WL_and_Multiples(data):
@@ -243,6 +245,8 @@ def process_results(data):
     print(f"Updated balances for session {session_id}: {balances}")
 
     session["results_submitted"] = {}
+
+    socketio.emit('displayBalance',{'session_id':session_id, 'balances': balances}, room=session_id)
     socketio.emit('next_round', {'session_id': session_id}, room=session_id)
 
 # @app.route("/start_round/<session_id>", methods=["POST"])

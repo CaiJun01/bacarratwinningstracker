@@ -64,6 +64,10 @@
                 round.id = "round";
                 prompt.appendChild(round);
 
+                const balanceTable = document.createElement('div')
+                balanceTable.id = "balanceDiv"
+                prompt.appendChild(balanceTable);
+
                 // Create and append the betamount div
                 const betAmount = document.createElement('div');
                 betAmount.id = "betamount";
@@ -74,7 +78,7 @@
                 displayTable.id = "displaytable";
 
                 // Add the heading for the table
-                const tableHeading = document.createElement('h2');
+                const tableHeading = document.createElement('h1');
                 tableHeading.textContent = "Players in Session";
                 displayTable.appendChild(tableHeading);
 
@@ -174,6 +178,7 @@
             
         socket.on("start_game", (data) => {
             clearInterval(fetchIntervalId);
+            players = data['players']
             console.log("Received start_round event:", data)
             document.getElementById('status').innerHTML = `<b>Status:</b> Session has started!`
             axios.get(`https://bacarratwinningstracker.onrender.com/check_session`).then(response => {
@@ -181,6 +186,34 @@
                 let round = round_count+1
                 document.getElementById('round').innerHTML = `<b>Round:</b> ${round}`
             })
+            let balanceDiv = document.getElementById('balanceDiv')
+            if (balanceDiv.innerHTML == ''){
+                let newInnerHTML1=`<h1>Current Balance</h1>
+                <table id = 'balanceTable'>
+                    <tr>
+                        <th>Player Name</th>
+                        <th>Current Balance</th>
+                    </tr>`
+                Object.entries(players).forEach(([player, bal]) => {
+                    newInnerHTML1+=`<tr><td>${player}</td><td>${bal}</td></tr>`
+                });
+                newInnerHTML1+=`</table>`
+                balanceDiv.innerHTML = newInnerHTML1
+            }
+            socket.off("displayBalance"); //if already listening, take it off
+            socket.on("displayBalance", (data) =>{
+                const balanceTable = document.getElementById('balanceTable')
+                let newInnerHTML2 = `<tr>
+                        <th>Player Name</th>
+                        <th>Current Balance</th>
+                    </tr>`
+                const balances = data['balances']
+                Object.entries(balances).forEach(([player, bal]) => {
+                    newInnerHTML2+=`<tr><td>${player}</td><td>${bal}</td></tr>`
+                });
+                balanceTable.innerHTML = newInnerHTML2
+            }); //then add it again
+
             document.getElementById('betamount').innerHTML = `
                 <h1>Enter Your Bet Amount</h1>
                 <input type="number" step = "1" min = "1" id="betAmount" placeholder="Type bet amount here">
@@ -211,7 +244,7 @@
                 socket.emit("place_bet", {
                     session_id: sessionId,
                     player_name: playerName,
-                    bet_amount: document.getElementById('betAmount').value
+                    bet_amount: removeLeadingZeros(document.getElementById('betAmount').value)
                 });
                 fetchLeaderAndUpdateUI();
                 document.getElementById('betamount').innerHTML+= `<p>Bets submitted successfully!</p>`
@@ -221,6 +254,10 @@
                 // periodicCalls();
             });
         })
+        
+        function removeLeadingZeros(input) {
+            return input.replace(/^0+/, ''); // Replace one or more leading zeros with an empty string
+        }
 
         socket.on('bet_placed', (data) => {
             //don't use data. Axios call to get all
@@ -293,7 +330,6 @@
                     <thead>
                                 <tr>
                                     <th>Player</th>
-                                    <th>Current Balance</th>
                                     <th>Bet Amount</th>
                                 </tr>
                             </thead>
@@ -310,7 +346,6 @@
                 newInnerHTML += `
                     <tr>
                         <td>${player}</td>
-                        <td>${dets['balance']}</td>
                         <td>${dets['bet_amount']}</td>
                     </tr>
                 `;
