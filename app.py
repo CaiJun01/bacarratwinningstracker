@@ -57,6 +57,20 @@ def check_session():
     }
     return jsonify(serializable_sessions)
 
+@app.route("/session_details/<session_id>", methods = ["GET"])
+def session_details(session_id):
+    # Check if the session exists
+    if session_id not in sessions:
+        return jsonify({"error": "Session not found"}), 404
+    
+    session_data = sessions[session_id]
+    serializable_session = {
+        key: list(value) if isinstance(value, set) else value
+        for key, value in session_data.items()
+    }
+
+    return jsonify({session_id: serializable_session})
+
 @app.route("/create_session", methods=["POST"])
 def create_session():
     data = request.json
